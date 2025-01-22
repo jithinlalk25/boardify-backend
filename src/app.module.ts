@@ -6,6 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { MemberModule } from './member/member.module';
 import { AdminModule } from './admin/admin.module';
 import { InstituteModule } from './institute/institute.module';
+import { NoticeModule } from './notice/notice.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { InstituteModule } from './institute/institute.module';
     MemberModule,
     AdminModule,
     InstituteModule,
+    NoticeModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
