@@ -10,6 +10,9 @@ export class Group {
 
   @Prop({ type: Types.ObjectId, required: true, ref: 'Institute' })
   instituteId: Types.ObjectId;
+
+  @Prop({ default: 0 })
+  memberCount: number;
 }
 
 export const GroupSchema = SchemaFactory.createForClass(Group);

@@ -28,7 +28,7 @@ export class MemberService {
   async addMembers(
     emails: string[],
     instituteId: Types.ObjectId,
-    type: MemberType,
+    type: string,
   ): Promise<Member[]> {
     // Find existing members with these emails in this institute
     const existingMembers = await this.memberModel.find({
@@ -61,7 +61,7 @@ export class MemberService {
   async getMembers(
     instituteId: Types.ObjectId,
     page: number = 1,
-    type?: MemberType,
+    type?: string,
     search?: string,
   ) {
     const limit = 30;
@@ -75,18 +75,47 @@ export class MemberService {
       query.email = { $regex: search, $options: 'i' };
     }
 
-    const [members, total] = await Promise.all([
-      this.memberModel
-        .find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
+    const [membersWithGroups, total] = await Promise.all([
+      this.memberModel.aggregate([
+        { $match: query },
+        { $sort: { createdAt: -1 } },
+        { $skip: skip },
+        { $limit: limit },
+        {
+          $lookup: {
+            from: 'groupmembers',
+            localField: '_id',
+            foreignField: 'memberId',
+            as: 'groupMemberships',
+          },
+        },
+        {
+          $lookup: {
+            from: 'groups',
+            localField: 'groupMemberships.groupId',
+            foreignField: '_id',
+            as: 'groups',
+          },
+        },
+        {
+          $addFields: {
+            groupNames: '$groups.name',
+          },
+        },
+        {
+          $project: {
+            email: 1,
+            type: 1,
+            createdAt: 1,
+            groupNames: 1,
+          },
+        },
+      ]),
       this.memberModel.countDocuments(query),
     ]);
 
     return {
-      members,
+      members: membersWithGroups,
       total,
       page,
       totalPages: Math.ceil(total / limit),
@@ -189,11 +218,16 @@ export class MemberService {
       })),
     );
 
+    // Update group member count
+    await this.groupModel.findByIdAndUpdate(groupId, {
+      $inc: { memberCount: groupMembers.length },
+    });
+
     return { added: groupMembers.length };
   }
 
   async getGroups(instituteId: Types.ObjectId) {
-    return this.groupModel.find({ instituteId }).sort({ createdAt: -1 }).lean();
+    return this.groupModel.find({ instituteId }).sort({ createdAt: -1 });
   }
 
   async getGroupDetails(groupId: Types.ObjectId, instituteId: Types.ObjectId) {
@@ -229,6 +263,13 @@ export class MemberService {
       memberId: { $in: memberObjectIds },
     });
 
+    // Update group member count
+    if (result.deletedCount > 0) {
+      await this.groupModel.findByIdAndUpdate(groupObjectId, {
+        $inc: { memberCount: -result.deletedCount },
+      });
+    }
+
     return { removed: result.deletedCount };
   }
 
@@ -237,7 +278,7 @@ export class MemberService {
     instituteId: Types.ObjectId,
     page: number = 1,
     search?: string,
-    type?: MemberType,
+    type?: string,
   ) {
     const limit = 30;
     const skip = (page - 1) * limit;
@@ -288,5 +329,9 @@ export class MemberService {
       page,
       totalPages,
     };
+  }
+
+  async getMemberTypes(instituteId: Types.ObjectId) {
+    return MemberType[instituteId.toString()] || {};
   }
 }

@@ -9,6 +9,9 @@ import { Request } from 'express';
 import { AdminService } from '../../admin/admin.service';
 import { InstituteService } from '../../institute/institute.service';
 import { Document } from 'mongoose';
+import { InstituteAdminRole } from '../../institute/schemas/institute-admin.schema';
+import { Reflector } from '@nestjs/core';
+import { ADMIN_ROLES_KEY } from '../decorators/admin-roles.decorator';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
@@ -16,6 +19,7 @@ export class AdminGuard implements CanActivate {
     private jwtService: JwtService,
     private adminService: AdminService,
     private instituteService: InstituteService,
+    private reflector: Reflector,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -46,6 +50,21 @@ export class AdminGuard implements CanActivate {
       );
       if (!institute) {
         throw new UnauthorizedException();
+      }
+
+      // Get roles from decorator
+      const requiredRoles =
+        this.reflector.getAllAndOverride<InstituteAdminRole[]>(
+          ADMIN_ROLES_KEY,
+          [context.getHandler(), context.getClass()],
+        ) || [];
+
+      // Always allow OWNER role, and check additional roles if specified
+      if (
+        instituteAdmin.role !== InstituteAdminRole.OWNER &&
+        !requiredRoles.includes(instituteAdmin.role)
+      ) {
+        throw new UnauthorizedException('Insufficient permissions');
       }
 
       // Attach to request object

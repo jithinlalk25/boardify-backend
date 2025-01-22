@@ -1,6 +1,5 @@
-import { IsNumber, IsOptional, IsString, IsEnum } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { MemberType } from '../schemas/member.schema';
 
 export class GetGroupMembersDto {
   @IsOptional()
@@ -13,6 +12,6 @@ export class GetGroupMembersDto {
   search?: string;
 
   @IsOptional()
-  @IsEnum(MemberType)
-  type?: MemberType;
+  @IsString()
+  type?: string;
 }

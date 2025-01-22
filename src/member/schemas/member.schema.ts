@@ -1,11 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-export enum MemberType {
-  STUDENT = 'STUDENT',
-  TEACHER = 'TEACHER',
-  STAFF = 'STAFF',
-}
+export const MemberType = {
+  '678cd9c2101bd565c074b2b6': {
+    STUDENT: 'STUDENT',
+    TEACHER: 'TEACHER',
+    STAFF: 'STAFF',
+  },
+};
 
 export type MemberDocument = Member & Document;
 
@@ -17,8 +19,8 @@ export class Member {
   @Prop({ type: Types.ObjectId, required: true, ref: 'Institute' })
   instituteId: Types.ObjectId;
 
-  @Prop({ required: true, type: String, enum: MemberType })
-  type: MemberType;
+  @Prop({ required: true })
+  type: string;
 }
 
 export const MemberSchema = SchemaFactory.createForClass(Member);

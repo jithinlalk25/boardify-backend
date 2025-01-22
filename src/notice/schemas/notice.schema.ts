@@ -16,6 +16,9 @@ export class Notice {
 
   @Prop({ type: [Types.ObjectId], required: true })
   groupIds: Types.ObjectId[];
+
+  @Prop({ default: 0 })
+  viewCount: number;
 }
 
 export const NoticeSchema = SchemaFactory.createForClass(Notice);

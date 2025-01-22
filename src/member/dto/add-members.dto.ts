@@ -1,11 +1,10 @@
-import { IsArray, IsEmail, IsEnum } from 'class-validator';
-import { MemberType } from '../schemas/member.schema';
+import { IsArray, IsEmail, IsString } from 'class-validator';
 
 export class AddMembersDto {
   @IsArray()
   @IsEmail({}, { each: true })
   emails: string[];
 
-  @IsEnum(MemberType)
-  type: MemberType;
+  @IsString()
+  type: string;
 }

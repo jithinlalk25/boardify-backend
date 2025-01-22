@@ -1,6 +1,5 @@
-import { IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { Type } from 'class-transformer';
-import { MemberType } from '../schemas/member.schema';
 
 export class GetMembersDto {
   @IsOptional()
@@ -10,8 +9,8 @@ export class GetMembersDto {
   page?: number = 1;
 
   @IsOptional()
-  @IsEnum(MemberType)
-  type?: MemberType;
+  @IsString()
+  type?: string;
 
   @IsOptional()
   @IsString()

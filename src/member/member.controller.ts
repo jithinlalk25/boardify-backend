@@ -131,6 +131,12 @@ export class MemberController {
     return this.memberService.getGroups(req['institute']._id);
   }
 
+  @Get('types')
+  @UseGuards(AdminGuard)
+  async getMemberTypes(@Req() req: Request) {
+    return this.memberService.getMemberTypes(req['institute']._id);
+  }
+
   @Get('group/:groupId')
   @UseGuards(AdminGuard)
   async getGroupDetails(@Param() params: GetGroupDto, @Req() req: Request) {

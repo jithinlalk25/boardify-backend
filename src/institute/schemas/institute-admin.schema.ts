@@ -3,6 +3,7 @@ import { Document, Schema as MongooseSchema, Types } from 'mongoose';
 
 export enum InstituteAdminRole {
   OWNER = 'OWNER',
+  ADMIN = 'ADMIN',
 }
 
 export type InstituteAdminDocument = InstituteAdmin & Document;
