@@ -10,7 +10,7 @@ import { InstituteModule } from '../institute/institute.module';
   imports: [
     MongooseModule.forFeature([{ name: Admin.name, schema: AdminSchema }]),
     forwardRef(() => AuthModule),
-    InstituteModule,
+    forwardRef(() => InstituteModule),
   ],
   controllers: [AdminController],
   providers: [AdminService],

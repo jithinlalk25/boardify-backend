@@ -9,7 +9,7 @@ import { AdminGuard } from './guards/admin.guard';
 @Module({
   imports: [
     forwardRef(() => AdminModule),
-    InstituteModule,
+    forwardRef(() => InstituteModule),
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '1d' },
