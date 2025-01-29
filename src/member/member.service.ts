@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Member, MemberDocument, MemberType } from './schemas/member.schema';
@@ -8,15 +12,20 @@ import {
   GroupMemberDocument,
 } from './schemas/group-member.schema';
 import { DashboardService } from '../dashboard/dashboard.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class MemberService {
+  private otpStore: Map<string, { otp: string; timestamp: number }> = new Map();
+  private readonly OTP_VALIDITY_MINUTES = 5;
+
   constructor(
     @InjectModel(Member.name) private memberModel: Model<MemberDocument>,
     @InjectModel(Group.name) private groupModel: Model<GroupDocument>,
     @InjectModel(GroupMember.name)
     private groupMemberModel: Model<GroupMemberDocument>,
     private readonly dashboardService: DashboardService,
+    private jwtService: JwtService,
   ) {}
 
   async createGroup(name: string, instituteId: Types.ObjectId): Promise<Group> {
@@ -333,5 +342,72 @@ export class MemberService {
 
   async getMemberTypes(instituteId: Types.ObjectId) {
     return MemberType[instituteId.toString()] || {};
+  }
+
+  async initiateLogin(email: string): Promise<{ message: string }> {
+    const member = await this.memberModel.findOne({ email });
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    this.otpStore.set(email, {
+      otp: '111111',
+      timestamp: Date.now(),
+    });
+
+    // TODO: Send OTP via email service
+    console.log(`OTP for ${email}: ${otp}`); // For development purposes
+
+    return { message: 'OTP sent successfully' };
+  }
+
+  async verifyOtp(email: string, otp: string): Promise<{ token: string }> {
+    const storedOtpData = this.otpStore.get(email);
+    if (!storedOtpData) {
+      throw new UnauthorizedException('OTP expired or not found');
+    }
+
+    const isExpired =
+      Date.now() - storedOtpData.timestamp >
+      this.OTP_VALIDITY_MINUTES * 60 * 1000;
+    if (isExpired) {
+      this.otpStore.delete(email);
+      throw new UnauthorizedException('OTP expired');
+    }
+
+    if (storedOtpData.otp !== otp) {
+      throw new UnauthorizedException('Invalid OTP');
+    }
+
+    // Clear OTP after successful verification
+    this.otpStore.delete(email);
+
+    const member = await this.memberModel.findOne({ email });
+    const token = this.jwtService.sign({
+      sub: member._id,
+      memberId: member._id,
+      email: member.email,
+      type: member.type,
+      instituteId: member.instituteId,
+    });
+
+    return { token };
+  }
+
+  async findById(id: Types.ObjectId): Promise<MemberDocument | null> {
+    return this.memberModel.findById(id);
+  }
+
+  async updatePushToken(
+    memberId: Types.ObjectId,
+    expoPushToken: string | null,
+  ): Promise<MemberDocument> {
+    return this.memberModel.findByIdAndUpdate(
+      memberId,
+      { 'metadata.expoPushToken': expoPushToken },
+      { new: true },
+    );
   }
 }

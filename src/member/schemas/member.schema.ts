@@ -11,6 +11,12 @@ export const MemberType = {
 
 export type MemberDocument = Member & Document;
 
+@Schema({ _id: false })
+class Metadata {
+  @Prop({ type: String, default: null })
+  expoPushToken: string | null;
+}
+
 @Schema({ timestamps: true })
 export class Member {
   @Prop({ required: true, index: true })
@@ -18,6 +24,9 @@ export class Member {
 
   @Prop({ type: Types.ObjectId, required: true, ref: 'Institute' })
   instituteId: Types.ObjectId;
+
+  @Prop({ type: Metadata, default: () => ({}) })
+  metadata: Metadata;
 
   @Prop({ required: true })
   type: string;

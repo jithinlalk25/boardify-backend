@@ -9,6 +9,8 @@ import { InstituteModule } from '../institute/institute.module';
 import { DashboardModule } from '../dashboard/dashboard.module';
 import { NoticeView, NoticeViewSchema } from './schemas/notice-view.schema';
 import { JwtModule } from '@nestjs/jwt';
+import { NoticeAppController } from './notice-app.controller';
+import { MemberModule } from '../member/member.module';
 
 @Module({
   imports: [
@@ -20,12 +22,13 @@ import { JwtModule } from '@nestjs/jwt';
     AdminModule,
     InstituteModule,
     DashboardModule,
+    MemberModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '1d' },
     }),
   ],
-  controllers: [NoticeController],
+  controllers: [NoticeController, NoticeAppController],
   providers: [NoticeService],
   exports: [NoticeService],
 })

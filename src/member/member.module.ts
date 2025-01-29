@@ -10,6 +10,7 @@ import { Member, MemberSchema } from './schemas/member.schema';
 import { Group, GroupSchema } from './schemas/group.schema';
 import { GroupMember, GroupMemberSchema } from './schemas/group-member.schema';
 import { DashboardModule } from '../dashboard/dashboard.module';
+import { MemberAppController } from './member-app.controller';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { DashboardModule } from '../dashboard/dashboard.module';
     InstituteModule,
     DashboardModule,
   ],
-  controllers: [MemberController],
+  controllers: [MemberController, MemberAppController],
   providers: [MemberService],
   exports: [MemberService],
 })
