@@ -21,6 +21,7 @@ export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
   @Get('me')
+  @AdminRoles(InstituteAdminRole.ADMIN)
   @UseGuards(AdminGuard)
   async getAdminDetails(@Request() req) {
     return {
